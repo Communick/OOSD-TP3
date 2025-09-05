@@ -11,6 +11,9 @@ public class PlayerBehavior : MonoBehaviour
     private Transform cameraTransform;
     [SerializeField]
     private Animator playerAnimator;
+    private bool isGrounded;
+    [SerializeField]
+    private Collision enemy;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -20,29 +23,43 @@ public class PlayerBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+         var landed = isGrounded;
+        if (landed != isGrounded)
+        {
+            if (!landed)
+            {
+                playerAnimator.SetFloat("Height", 1);
+            }
+            
+        }
+        if (obj.linearVelocity.y > 0)
+        {
+            playerAnimator.SetFloat("Height", -1);
+            playerAnimator.SetFloat("Height", 0);
+        }
         playerAnimator.SetFloat("xMove", 0);
         playerAnimator.SetFloat("yMove", 0);
         if (Input.GetKey(KeyCode.A))
         {
-            transform.Translate(-0.1f, 0, 0); 
+            transform.Translate(-0.01f, 0, 0); 
             playerAnimator.SetTrigger("Walking");
             playerAnimator.SetFloat("xMove", -1);
         }
         if (Input.GetKey(KeyCode.D))
         {
-            transform.Translate(0.1f, 0, 0);
+            transform.Translate(0.01f, 0, 0);
             playerAnimator.SetTrigger("Walking");
             playerAnimator.SetFloat("xMove", 1);
         }
         if (Input.GetKey(KeyCode.W))
         {
-            transform.Translate(0, 0, 0.1f);
+            transform.Translate(0, 0, 0.01f);
             playerAnimator.SetTrigger("Walking");
             playerAnimator.SetFloat("yMove", 1);
         }
         if (Input.GetKey(KeyCode.S))
         {
-            transform.Translate(0, 0, -0.1f);
+            transform.Translate(0, 0, -0.01f);
             playerAnimator.SetTrigger("Walking");
             playerAnimator.SetFloat("yMove", -1);
         }
@@ -61,11 +78,16 @@ public class PlayerBehavior : MonoBehaviour
 
     private void OnCollisionStay(Collision collision)
     {
-        if (Input.GetKey(KeyCode.Space) && collision.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            playerAnimator.SetTrigger("Jumping");
-            obj.linearVelocity = Vector3.zero;
-            obj.AddForce(new Vector3(0, jumpForce, 0));
+            isGrounded = true;
+            if (Input.GetKey(KeyCode.Space))
+            {
+                isGrounded = false;
+                playerAnimator.SetTrigger("Jumping");
+                obj.linearVelocity = Vector3.zero;
+                obj.AddForce(new Vector3(0, jumpForce, 0));
+            }
         }
     }
 }
