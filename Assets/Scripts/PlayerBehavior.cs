@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 
@@ -14,16 +15,31 @@ public class PlayerBehavior : MonoBehaviour
     private bool isGrounded;
     [SerializeField]
     private Collision enemy;
+    [SerializeField]
+    private EnnemyBehavior ennemy;
+    [SerializeField]
+    private PlayerHitboxBehavior hitbox;
+    [SerializeField]
+    private HealthBarBehavior healthBar;
+    private int health;
+    private float maxHealth;
+    public int damage = 10;
+    public bool attacking;
+    public float attackrate = 0;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         obj.useGravity = true;
+        health = 100;
+        maxHealth = health;
     }
 
     // Update is called once per frame
     void Update()
     {
-         var landed = isGrounded;
+        healthBar.SetTarget(ref health, ref maxHealth);
+        attacking = false;
+        var landed = isGrounded;
         if (landed != isGrounded)
         {
             if (!landed)
@@ -64,6 +80,13 @@ public class PlayerBehavior : MonoBehaviour
             playerAnimator.SetFloat("yMove", -1);
         }
 
+        if (Input.GetKey(KeyCode.Q))
+        {
+            playerAnimator.SetTrigger("Attack");
+        }
+
+        if (hitbox.attackEnnemy == true && Input.GetKey(KeyCode.Q)) attacking = true;
+
         if (Input.GetMouseButton(1))
         {
             Vector3 forward = cameraTransform.forward;
@@ -73,6 +96,23 @@ public class PlayerBehavior : MonoBehaviour
                 transform.rotation = Quaternion.LookRotation(forward);
             }
 
+        }
+
+        if (ennemy.attacking && health > 0)
+        {
+            if (ennemy.attackrate < Time.time)
+            {
+                health -= ennemy.damage;
+                healthBar.Change(ref health);
+                ennemy.attackrate += 1;
+            }
+
+        }
+
+        if (health <= 0)
+        {
+            UnityEditor.EditorApplication.isPlaying = false;
+            Application.Quit();
         }
     }
 
