@@ -7,6 +7,10 @@ public class CameraBehavior : MonoBehaviour
 {
     [SerializeField]
     private Transform player;
+    [SerializeField]
+    private Camera self;
+    [SerializeField]
+    private LineBehavior line;
     private float minFov = 15f;
     private float maxFov = 90f;
     private float sensitivity = -10f;
@@ -14,11 +18,13 @@ public class CameraBehavior : MonoBehaviour
     private float yaw = 0f;
     private float pitch = 20f;
     private float distance;
+    private bool inIntro;
+    private float lineTime = 0f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         distance = transform.position.z;
-        fov = Camera.main.fieldOfView;
+        inIntro = true;
     }
 
     // Update is called once per frame
@@ -31,6 +37,25 @@ public class CameraBehavior : MonoBehaviour
 
     void LateUpdate()
     {
+        if (inIntro)
+        {
+            // Move along Bézier curve
+            lineTime += Time.deltaTime / 5f;
+            lineTime = Mathf.Clamp01(lineTime);
+
+            // Use your line behavior to place the camera
+            Vector3 curvePos = line.LineRenderFollow(lineTime, line.duration, line.p0, line.p1, line.p2, line.p3);
+            transform.position = curvePos;
+
+            // Make it look at the player during the intro
+            transform.LookAt(player.position);
+
+            // End intro when finished
+            if (lineTime >= 1f)
+            {
+                inIntro = false;
+            }
+        }
         if (Input.GetMouseButton(1)) 
         {
             yaw += Input.GetAxis("Mouse X") * sensitivity;
